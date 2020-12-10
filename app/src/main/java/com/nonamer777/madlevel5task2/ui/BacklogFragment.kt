@@ -25,6 +25,10 @@ import com.nonamer777.madlevel5task2.utils.viewBinding.ViewBindingHolder
  */
 class BacklogFragment: Fragment(), IViewBindingHolder<FragmentBacklogBinding> by ViewBindingHolder() {
 
+    private val gameBacklogViewModel: GameBacklogViewModel by viewModels()
+
+    private val gameAdapter = GameAdapter(MainActivity.gameBacklog)
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,6 +42,9 @@ class BacklogFragment: Fragment(), IViewBindingHolder<FragmentBacklogBinding> by
         MainActivity.actionBar?.setHomeButtonEnabled(false)
         MainActivity.actionBar?.setDisplayHomeAsUpEnabled(false)
 
+        // Initializes the recycler view.
+        gameBacklogRecyclerView.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        gameBacklogRecyclerView.adapter = gameAdapter
         btnAddGame.setOnClickListener {
             Navigation.findNavController(root)
                 .navigate(R.id.action_backlogFragment_to_addGameFragment)
@@ -46,5 +53,20 @@ class BacklogFragment: Fragment(), IViewBindingHolder<FragmentBacklogBinding> by
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        observeBacklogResults()
+    }
+
+    /** Updates the game backlog whenever a change is detected. */
+    private fun observeBacklogResults() {
+        gameBacklogViewModel.backlog.observe(viewLifecycleOwner, { gameBacklog -> gameBacklog?.let {
+
+            MainActivity.gameBacklog.clear()
+            MainActivity.gameBacklog.addAll(gameBacklog)
+            MainActivity.gameBacklog.sortWith(compareBy { it.releaseDate })
+
+            gameAdapter.notifyDataSetChanged()
+        }})
+    }
     }
 }

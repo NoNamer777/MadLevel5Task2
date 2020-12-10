@@ -19,7 +19,14 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         var actionBar: ActionBar? = null
+
+        val gameBacklog: ArrayList<Game> = arrayListOf()
     }
+
+    private lateinit var binding: ActivityMainBinding
+
+    private val gameBacklogViewModel: GameBacklogViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,6 +41,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
+
+        // Hides the clear backlog icon whenever the User is adding a new game to the backlog.
+        findNavController(R.id.nav_host_fragment)
+            .addOnDestinationChangedListener { _, destination, _ ->
+
+                when (destination.label == getString(R.string.fragment_label_add_game)) {
+                    true -> menu.findItem(R.id.btn_clear_backlog)?.isVisible = false
+                    else -> menu.findItem(R.id.btn_clear_backlog)?.isVisible = true
+                }
+            }
 
         return true
     }
