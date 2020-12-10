@@ -45,6 +45,10 @@ class BacklogFragment: Fragment(), IViewBindingHolder<FragmentBacklogBinding> by
         // Initializes the recycler view.
         gameBacklogRecyclerView.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         gameBacklogRecyclerView.adapter = gameAdapter
+
+        // Handles a touch gestures on the individual game items in the backlog.
+        createItemTouchHelper().attachToRecyclerView(gameBacklogRecyclerView)
+
         btnAddGame.setOnClickListener {
             Navigation.findNavController(root)
                 .navigate(R.id.action_backlogFragment_to_addGameFragment)
@@ -68,5 +72,41 @@ class BacklogFragment: Fragment(), IViewBindingHolder<FragmentBacklogBinding> by
             gameAdapter.notifyDataSetChanged()
         }})
     }
+
+    /** Handles touch gestures on an item in the game backlog recycler view. */
+    private fun createItemTouchHelper(): ItemTouchHelper {
+        val callback = object: ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            // Disables dragging an item up - down.
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
+            // Handles removing a game from the backlog when an item is swiped left.
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val toBeDeletedGame: Game = MainActivity.gameBacklog[viewHolder.adapterPosition]
+                val snackbar = binding?.root?.let {
+                    Snackbar.make(
+                        it,
+                        "Successfully remove game from the backlog",
+                        Snackbar.LENGTH_LONG
+                    )
+                }
+
+                // Makes the removing of a game from the backlog undoable.
+                snackbar?.setAction(
+                    R.string.label_undo,
+                    RemoveGameUndoListener(gameBacklogViewModel, toBeDeletedGame)
+                )
+                snackbar?.setActionTextColor(Color.rgb(63, 149, 255))
+
+                gameBacklogViewModel.removeGame(toBeDeletedGame)
+
+                snackbar?.show()
+            }
+        }
+        return ItemTouchHelper(callback)
     }
 }
