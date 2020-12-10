@@ -63,6 +63,30 @@ class MainActivity : AppCompatActivity() {
 
             true
         }
+        // Clears the backlog whenever the User presses the 'clear backlog' icon.
+        R.id.btn_clear_backlog -> {
+            // Makes a copy of the current game backlog.
+            val currentBacklog: ArrayList<Game> = arrayListOf()
+            currentBacklog.addAll(gameBacklog)
+
+            val snackbar = Snackbar.make(
+                binding.root,
+                "Successfully cleared backlog",
+                Snackbar.LENGTH_LONG
+            )
+
+            // Makes it possible to undo the clearing of the backlog, for how long the snackbar is visible.
+            snackbar.setAction(
+                R.string.label_undo,
+                ClearBacklogUndoListener(gameBacklogViewModel, currentBacklog)
+            )
+            snackbar.setActionTextColor(Color.rgb(63, 149, 255))
+
+            gameBacklogViewModel.clearBacklog()
+            snackbar.show()
+
+            true
+        }
         else -> super.onOptionsItemSelected(item)
     }
 }
